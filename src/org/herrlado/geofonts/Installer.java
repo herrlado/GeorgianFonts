@@ -4,8 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.LineNumberReader;
 import java.io.OutputStream;
+import java.io.StringReader;
 import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
 import org.herrlado.geofonts.ShellCommand.CommandResult;
@@ -47,6 +51,9 @@ public class Installer extends Activity implements OnClickListener,
 	public static final HashMap<String, String> MD5 = new HashMap<String, String>();
 
 	public static final String DESTINATION = "/system/fonts";
+
+	public static final Pattern MOUNT_SYSTEM_PATTERN = Pattern
+			.compile("([^\\s]*)\\s.*(/system)\\s.*");
 
 	static {
 		MD5.put(DroidSansBold, "bd3163f7db07b82158a310efd77902ce");
@@ -99,6 +106,24 @@ public class Installer extends Activity implements OnClickListener,
 		return false;
 	}
 
+	// TODO check this!izav
+	// boolean mExternalStorageAvailable = false;
+	// boolean mExternalStorageWriteable = false;
+	// String state = Environment.getExternalStorageState();
+	//
+	// if (Environment.MEDIA_MOUNTED.equals(state)) {
+	// // We can read and write the media
+	// mExternalStorageAvailable = mExternalStorageWriteable = true;
+	// } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
+	// // We can only read the media
+	// mExternalStorageAvailable = true;
+	// mExternalStorageWriteable = false;
+	// } else {
+	// // Something else is wrong. It may be one of many other states, but all
+	// we need
+	// // to know is we can neither read nor write
+	// mExternalStorageAvailable = mExternalStorageWriteable = false;
+	// }
 	private String getBackupFolder() {
 		return Environment.getExternalStorageDirectory() + "/"
 				+ getApplicationContext().getPackageName();
@@ -132,6 +157,7 @@ public class Installer extends Activity implements OnClickListener,
 
 	public boolean installFonts() {
 		StringBuilder sb = new StringBuilder();
+		String system = null;
 		try {
 			ShellCommand sc = new ShellCommand();
 
@@ -140,7 +166,15 @@ public class Installer extends Activity implements OnClickListener,
 				return false;
 			}
 
-			String cc = "mount -o remount,rw  /system";
+			system = getSystemPartion();
+
+			if (system == null) {
+				Log.w(TAG,
+						"Can not find out which partion is mounted on /system");
+				return false;
+			}
+
+			String cc = "mount -o remount,rw  " + system + " /system";
 			sb.append(cc).append("\n");
 
 			check(sc.su.runWaitFor(cc));
@@ -161,7 +195,13 @@ public class Installer extends Activity implements OnClickListener,
 				sb.append(cc).append("\n");
 				check(sc.su.runWaitFor(cc));
 			}
-
+			try {
+				cc = "mount -o remount,ro " + system + " /system";
+				sb.append(cc).append("\n");
+				check(sc.su.runWaitFor(cc));
+			} catch (Exception ex) {
+				Log.w(TAG, "Can not mount /system ro :(", ex);
+			}
 			return true;
 
 		} catch (Exception ex) {
@@ -169,18 +209,34 @@ public class Installer extends Activity implements OnClickListener,
 					ex);
 			return false;
 		} finally {
-			try {
-				String cc = "mount -o remount,ro  /system";
-				sb.append(cc).append("\n");
-				new ShellCommand().su.runWaitFor(cc);
-			} catch (Exception ex) {
-				// mist
-			}
 			String command = sb.toString();
 			Log.i(TAG, "run commands >>>>");
 			Log.i(TAG, command);
 
 		}
+	}
+
+	private String getSystemPartion() {
+
+		ShellCommand sc = new ShellCommand();
+		CommandResult cr = sc.su.runWaitFor("mount");
+		String stdout = cr.stdout;
+
+		try {
+			LineNumberReader lineNumberReader = new LineNumberReader(
+					new StringReader(stdout));
+			String line = null;
+			while ((line = lineNumberReader.readLine()) != null) {
+				Matcher m = MOUNT_SYSTEM_PATTERN.matcher(line);
+				if (m.matches()) {
+					return m.group(1);
+				}
+			}
+
+		} catch (Exception ex) {
+			Log.w(TAG, ex.getMessage(), ex);
+		}
+		return null;
 	}
 
 	private static void check(CommandResult runWaitFor) throws Exception {
@@ -281,7 +337,7 @@ public class Installer extends Activity implements OnClickListener,
 				protected void onPostExecute(Boolean result) {
 					Installer.this.enableView();
 					if (result) {
-						makeToast("Enjoy georgina on your device!");
+						makeToast("Enjoy georgina on your device!\nDon't forget to reboot your device!");
 					} else {
 						makeToast("The fonts were not installed. Please check the logs and contact the developer :(");
 					}
