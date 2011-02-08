@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="georgian_text">ნახეს უცხო მოყმე ვინმე ჯდა მტირალი წყლისა</string>
+    <string name="georgian_text">ნახეს უცხო მოყმე ვინმე ჯდა მტირალი წყლისა პირსა</string>
     <string name="georgian_text_title">The following text is in Georgian. Check if you can read it.</string>
     <string name="app_name">Georgian Fonts Installer</string>
     <string name="install_button">Install Georgian Fonts</string>
