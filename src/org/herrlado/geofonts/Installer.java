@@ -23,6 +23,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -344,6 +347,27 @@ public class Installer extends Activity implements OnClickListener,
 					super.onPostExecute(result);
 				}
 			}.execute();
+		}
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public final boolean onCreateOptionsMenu(final Menu menu) {
+		MenuInflater inflater = this.getMenuInflater();
+		inflater.inflate(R.menu.menu, menu);
+		return true;
+	}
+	
+	@Override
+	public final boolean onOptionsItemSelected(final MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.send_logs: // start settings activity
+			de.ub0r.android.lib.Log.collectAndSendLog(this);
+			return true;
+		default:
+			return false;
 		}
 	}
 
