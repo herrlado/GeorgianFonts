@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+<TextView  
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:text="@string/georgian_text_title"
+    />
+<TextView  
+    android:layout_width="fill_parent" 
+    android:layout_height="wrap_content" 
+    android:text="@string/georgian_text"
+    />
+
+
+<Button android:text="@string/install_button" android:id="@+id/install_fonts" android:layout_height="wrap_content" android:visibility="visible" android:enabled="false"  android:layout_width="match_parent"></Button>
+
+
+<Button android:text="@string/uninstall_this_app" android:id="@+id/uninstall_this_app" android:layout_height="wrap_content" android:visibility="visible" android:enabled="true"  android:layout_width="match_parent"></Button>
+
+</LinearLayout>
