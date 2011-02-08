@@ -337,7 +337,7 @@ public class Installer extends Activity implements OnClickListener,
 				protected void onPostExecute(Boolean result) {
 					Installer.this.enableView();
 					if (result) {
-						makeToast("Enjoy georgina on your device!\nDon't forget to reboot your device!");
+						makeToast("Enjoy Georgian on your device!\nDon't forget to reboot your device!");
 					} else {
 						makeToast("The fonts were not installed. Please check the logs and contact the developer :(");
 					}
