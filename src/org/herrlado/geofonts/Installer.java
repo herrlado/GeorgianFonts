@@ -1,12 +1,10 @@
 package org.herrlado.geofonts;
 
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
@@ -17,12 +15,14 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 public class Installer extends Activity implements OnClickListener,
@@ -56,25 +56,6 @@ public class Installer extends Activity implements OnClickListener,
 		MD5.put(DroidSerifBoldItalic, "04154e4911adba25105d3d01276359e0");
 		MD5.put(DroidSerifItalic, "8dccfdce11daa12537fde6cd16dc5bf2");
 		MD5.put(DroidSerifRegular, "ad860d4a21a857bdee918d902829990a");
-	}
-
-	public ArrayList<String> getSystemFonts() {
-		ArrayList<String> list = new ArrayList<String>();
-		for (String fn : MD5.keySet()) {
-			list.add("/system/fonts/" + fn);
-		}
-
-		return list;
-	}
-
-	public ArrayList<String> getTmpFonts() {
-		ArrayList<String> list = new ArrayList<String>();
-		String prefix = "/tmp/" + getApplicationContext().getPackageName()
-				+ "/";
-		for (String fn : MD5.keySet()) {
-			list.add(prefix + fn);
-		}
-		return list;
 	}
 
 	public boolean backup() {
@@ -124,7 +105,7 @@ public class Installer extends Activity implements OnClickListener,
 	}
 
 	private String getTmpFontFolder() {
-		return "/tmp/" + getApplicationContext().getPackageName();
+		return getBackupFolder() + "/tmp";
 	}
 
 	public boolean extractFonts() {
@@ -150,41 +131,61 @@ public class Installer extends Activity implements OnClickListener,
 	}
 
 	public boolean installFonts() {
+		StringBuilder sb = new StringBuilder();
 		try {
 			ShellCommand sc = new ShellCommand();
 
-			StringBuilder sb = new StringBuilder();
-
 			if (extractFonts() == false) {
-				makeToast("Can not extract Georgian fonts from apk!");
+				Log.w(TAG, "Can not extract Georgian fonts from apk!");
 				return false;
 			}
 
-			sb.append("mount -o remount,rw  /system\n");
+			String cc = "mount -o remount,rw  /system";
+			sb.append(cc).append("\n");
+
+			check(sc.su.runWaitFor(cc));
+
 			String sourceFolder = getTmpFontFolder();
 			for (String key : MD5.keySet()) {
 				String source = sourceFolder + "/" + key;
 				String dest = DESTINATION + "/" + key;
-				sb.append("cat " + key + " > " + dest + "\n");
-				sb.append("chmod 644  " + dest + "\n");
-				sb.append("rm " + source + "\n");
+				cc = "cat " + source + " > " + dest;
+				sb.append(cc).append("\n");
+				check(sc.su.runWaitFor(cc));
+
+				cc = "chmod 644  " + dest;
+				sb.append(cc).append("\n");
+				check(sc.su.runWaitFor(cc));
+
+				cc = "rm " + source;
+				sb.append(cc).append("\n");
+				check(sc.su.runWaitFor(cc));
 			}
-			sb.append("mount -o remount,ro  /system\n");
-			String command = sb.toString();
-			Log.i(TAG, "running command>>>>");
-			Log.i(TAG, command);
-			CommandResult cr = sc.su.runWaitFor(sb.toString());
-			if (cr.success() == true) {
-				makeToast("Enjoy Georgian on your device. Now reboot your device to let new fonts be activated!");
-				return true;
-			} else {
-				makeToast("Fonts were not installed :(");
-				return false;
-			}
+
+			return true;
+
 		} catch (Exception ex) {
-			makeToast("Can not install georgina fonts. Please check the logs: "
-					+ ex.getMessage());
+			Log.w(TAG, "Can not install georgian fonts. Please check the logs",
+					ex);
 			return false;
+		} finally {
+			try {
+				String cc = "mount -o remount,ro  /system";
+				sb.append(cc).append("\n");
+				new ShellCommand().su.runWaitFor(cc);
+			} catch (Exception ex) {
+				// mist
+			}
+			String command = sb.toString();
+			Log.i(TAG, "run commands >>>>");
+			Log.i(TAG, command);
+
+		}
+	}
+
+	private static void check(CommandResult runWaitFor) throws Exception {
+		if (runWaitFor.success() == false) {
+			throw new Exception(runWaitFor.stderr);
 		}
 	}
 
@@ -237,18 +238,56 @@ public class Installer extends Activity implements OnClickListener,
 		startActivity(deleteThis);
 	}
 
+	public void enableView() {
+		Button button = (Button) findViewById(R.id.uninstall_this_app);
+		button.setEnabled(true);
+		button = (Button) findViewById(R.id.install_fonts);
+		button.setEnabled(true);
+		ProgressBar pb = (ProgressBar) findViewById(R.id.installing);
+		pb.setVisibility(View.INVISIBLE);
+	}
+
+	public void disableView() {
+		Button button = (Button) findViewById(R.id.uninstall_this_app);
+		button.setEnabled(false);
+		button = (Button) findViewById(R.id.install_fonts);
+		button.setEnabled(false);
+		ProgressBar pb = (ProgressBar) findViewById(R.id.installing);
+		pb.setVisibility(View.VISIBLE);
+	}
+
 	@Override
 	public void onClick(DialogInterface dialog, int which) {
 		if (DialogInterface.BUTTON_POSITIVE == which) {
-			if (backup() == false) {
-				makeToast("Can not backup fonts. Please check logs");
-			} else {
-				if (installFonts() == true) {
-					uninstallThis();
+			new AsyncTask<Void, Void, Boolean>() {
+				@Override
+				protected Boolean doInBackground(Void... params) {
+
+					if (backup() == false) {
+						Log.w(TAG, "Can not backup fonts. Please check logs");
+						return false;
+					}
+
+					return installFonts();
 				}
-			}
-		} else {
-			return;
+
+				@Override
+				protected void onPreExecute() {
+					super.onPreExecute();
+					Installer.this.disableView();
+				}
+
+				@Override
+				protected void onPostExecute(Boolean result) {
+					Installer.this.enableView();
+					if (result) {
+						makeToast("Enjoy georgina on your device!");
+					} else {
+						makeToast("The fonts were not installed. Please check the logs and contact the developer :(");
+					}
+					super.onPostExecute(result);
+				}
+			}.execute();
 		}
 	}
 
