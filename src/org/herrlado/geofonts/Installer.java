@@ -261,7 +261,7 @@ public class Installer extends Activity implements OnClickListener,
 		if (shc.canSU(true) == false) {
 			Toast.makeText(
 					this,
-					"This app can not gain Super User rights. Do you have rooted your device?",
+					"This app can not gain Super User rights. Is your device rooted?",
 					Toast.LENGTH_LONG).show();
 			return;
 		}
