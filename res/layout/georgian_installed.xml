@@ -15,9 +15,9 @@
     android:text="@string/georgian_text"
     />
 
-
 <Button android:text="@string/install_button" android:id="@+id/install_fonts" android:layout_height="wrap_content" android:visibility="visible" android:enabled="false"  android:layout_width="match_parent"></Button>
 <Button android:text="@string/uninstall_this_app" android:id="@+id/uninstall_this_app" android:layout_height="wrap_content" android:visibility="visible" android:enabled="true"  android:layout_width="match_parent"></Button>
+<Button android:text="@string/restore_fonts" android:id="@+id/restore_fonts" android:layout_height="wrap_content" android:visibility="visible" android:enabled="false"  android:layout_width="match_parent"></Button>
 
 <ProgressBar android:id="@+id/installing" android:visibility="invisible"  android:layout_gravity="center_vertical|center_horizontal"
  android:layout_width="wrap_content" android:layout_height="wrap_content"></ProgressBar>

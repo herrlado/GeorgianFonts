@@ -5,8 +5,8 @@
     <string name="app_name">Georgian Fonts Installer</string>
     <string name="install_button">Install Georgian Fonts</string>
     <string name="uninstall_this_app">Uninstall this app (not needed after the successful install)</string>
-    
-    
+    <string name="restore_fonts">Restore Original Fonts</string>  
+            
     <string name="send_logs">Send logs</string>
 	<string name="send_logs_hint">Send your device\'s logs to the developer.\nDo this only if you were asked to do so.</string>
 	<string name="sendlog_run">Run SendLog</string>
@@ -14,5 +14,9 @@
 	<string name="sendlog_install">Install SendLog</string>
 	<string name="sendlog_install_hint">Install the free SendLog application to collect the device log and send it to the developer.</string>
     <string name="debug">Debug</string>
-    
+    <string name="alert_info">INFO</string>
+    <string name="alert_warn">WARNING</string>
+    <string name="alert_ok">ok</string>
+    <string name="alert_cancel">cancel</string>
+    <string name="alert_help">help</string>
 </resources>

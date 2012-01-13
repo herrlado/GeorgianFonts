@@ -2,3 +2,4 @@ bin/
 gen/
 georgianfonts
 /build.properties
+/local.properties
