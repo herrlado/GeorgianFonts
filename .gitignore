@@ -3,3 +3,4 @@ gen/
 georgianfonts
 /build.properties
 /local.properties
+/ant.properties
