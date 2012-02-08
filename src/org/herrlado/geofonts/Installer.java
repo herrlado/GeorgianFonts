@@ -33,6 +33,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 public class Installer extends Activity implements OnClickListener,
 		DialogInterface.OnClickListener {
@@ -78,6 +79,10 @@ public class Installer extends Activity implements OnClickListener,
 	//private SDCardMountIntentReceiver sDCardMountIntentReceiver = null;
 
 	private void alertUser(String text, DialogInterface.OnClickListener listener) {
+		if(isFinishing()){
+			Toast.makeText(this,text, Toast.LENGTH_SHORT).show();
+			return;
+		}
 		new AlertDialog.Builder(this).setMessage(text).setCancelable(false)
 				.setTitle(R.string.alert_warn)
 				.setIcon(android.R.drawable.ic_dialog_alert)
@@ -85,6 +90,10 @@ public class Installer extends Activity implements OnClickListener,
 	}
 
 	private void notifyUser(String text) {
+		if(isFinishing()){
+			Toast.makeText(this,text, Toast.LENGTH_SHORT).show();
+			return;
+		}
 		new AlertDialog.Builder(this).setMessage(text).setCancelable(false)
 				.setTitle(R.string.alert_info)
 				.setIcon(android.R.drawable.ic_dialog_info)
@@ -309,6 +318,10 @@ public class Installer extends Activity implements OnClickListener,
 
 		ShellCommand shc = new ShellCommand();
 		if (shc.canSU(true) == false) {
+			if(isFinishing()){
+				Toast.makeText(Installer.this, "This app cannot gain Super User permissions. Is your device rooted?", Toast.LENGTH_SHORT).show();
+				return;
+			}
 			new AlertDialog.Builder(this)
 					.setTitle(R.string.alert_warn)
 					.setMessage(
@@ -463,6 +476,7 @@ public class Installer extends Activity implements OnClickListener,
 		inflater.inflate(R.menu.menu, menu);
 		return true;
 	}
+	
 
 	@Override
 	public final boolean onOptionsItemSelected(final MenuItem item) {
